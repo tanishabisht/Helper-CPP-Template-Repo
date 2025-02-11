@@ -3,13 +3,12 @@
 
 Notifier::Notifier(int thresh) : threshold(thresh), notified(false) {}
 
-void Notifier::checkAndNotify(int result, int threshold) {
+void Notifier::checkAndNotify(int result) {
     if (result > threshold) {
         notified = true;
-        notify("Threshold exceeded");
     }
 }
 
 bool Notifier::wasNotified() const {
     return notified;
-} 
+}

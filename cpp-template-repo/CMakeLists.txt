@@ -12,6 +12,12 @@ include_directories(include)
 
 # Add the source files
 file(GLOB SOURCES "src/*.cpp")
+file(GLOB TEST_SOURCES "tests/*.cpp")
 
 # Add the executable
-add_executable(MyCppProject ${SOURCES})
+add_executable(MyCppProject ${SOURCES} ${TEST_SOURCES})
+
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+target_link_libraries(MyCppProject ${GTEST_LIBRARIES} pthread)

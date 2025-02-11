@@ -1,24 +1,16 @@
 #include "Logger.h"
 #include <gtest/gtest.h>
-#include <sstream>
-#include <iostream>
+#include <string>
+#include <vector>
 
-class LoggerTest : public ::testing::Test {
-protected:
-    std::stringstream buffer;
-    std::streambuf* old;
-
-    void SetUp() override {
-        old = std::cout.rdbuf(buffer.rdbuf());
-    }
-
-    void TearDown() override {
-        std::cout.rdbuf(old);
-    }
-};
-
-TEST_F(LoggerTest, LogMessage) {
+TEST(LoggerTest, LogMessages) {
     Logger logger;
-    logger.log("Test message");
-    EXPECT_EQ(buffer.str(), "Log: Test message\n");
+
+    logger.log("add");
+    logger.log("subtract");
+
+    const std::vector<std::string>& logs = logger.getLogs();
+    ASSERT_EQ(logs.size(), 2);
+    EXPECT_EQ(logs[0], "add");
+    EXPECT_EQ(logs[1], "subtract");
 } 

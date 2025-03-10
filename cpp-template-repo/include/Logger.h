@@ -5,9 +5,14 @@
 #include <vector>
 
 class Logger {
-public:
-    void log(const std::string& message);
-    std::vector<std::string> getLogs() const;
+
+    private:
+        std::vector<std::string> logs;
+
+    public:
+        Logger();
+        void log(const std::string& message);
+        std::vector<std::string> getLogs() const;
 };
 
 #endif // LOGGER_H 

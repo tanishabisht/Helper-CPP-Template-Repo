@@ -4,14 +4,15 @@
 #include <string>
 
 class Notifier {
-public:
-    Notifier(int thresh);  // Constructor
-    void checkAndNotify(int result);
-    bool wasNotified() const;
 
-private:
-    int threshold;
-    bool notified;
+    private:
+        int threshold;
+        bool notified;
+        
+    public:
+        Notifier(int thresh);  // Constructor
+        void checkAndNotify(int result);
+        bool wasNotified() const;
 };
 
 #endif // NOTIFIER_H 

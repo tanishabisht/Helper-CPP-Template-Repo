@@ -1,0 +1,96 @@
+version: 2.1  # CircleCI config version
+
+# ------------------------
+# 🚀 Define Executors (Environments)
+# ------------------------
+executors:
+  node_executor:
+    docker:
+      - image: circleci/node:16  # Main environment for JavaScript projects
+  python_executor:
+    docker:
+      - image: circleci/python:3.9  # Python environment for API backend
+  machine_executor:
+    machine:
+      image: ubuntu-2204:current  # Full VM instead of Docker
+
+# ------------------------
+# 🏗️ Define Jobs (Tasks)
+# ------------------------
+jobs:
+
+  # 🎯 Build Job: Install dependencies & prepare the app
+  build:
+    executor: node_executor
+    steps:
+      - checkout  # Clone the repository
+      - restore_cache:  # Restore previous dependencies
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+      - run: npm install  # Install dependencies
+      - save_cache:  # Save installed dependencies for future builds
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+      - run: npm run build  # Create production build (if applicable)
+      - store_artifacts:
+          path: build  # Save the build folder as an artifact
+
+  # ✅ Unit Test Job: Runs basic unit tests
+  unit-test:
+    executor: node_executor
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm test -- --coverage  # Run unit tests with coverage
+      - store_artifacts:
+          path: coverage  # Save coverage reports
+      - store_test_results:
+          path: test-results  # Store test result logs
+
+  # 🔗 Integration Test Job: Requires a database + caching
+  integration-test:
+    docker:
+      - image: circleci/node:16  # Main app environment
+      - image: circleci/postgres:13  # PostgreSQL database
+        environment:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: testdb
+      - image: redis:6  # Redis for caching
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm run test:integration  # Run integration tests
+      - store_test_results:
+          path: test-results
+
+  # 🚀 Deployment Job: Deploy to production (AWS S3 example)
+  deploy:
+    executor: python_executor  # Running in a Python-based environment
+    steps:
+      - checkout
+      - run:
+          name: Install AWS CLI
+          command: pip install awscli
+      - run:
+          name: Deploy to S3
+          command: aws s3 sync ./build s3://my-bucket-name --delete
+
+# ------------------------
+# 🔄 Define Workflows (Control Execution Order)
+# ------------------------
+workflows:
+  version: 2
+  build-test-deploy:
+    jobs:
+      - build  # First, build the project
+      - unit-test:
+          requires:
+            - build  # Run only if build succeeds
+      - integration-test:
+          requires:
+            - build  # Run only if build succeeds
+      - deploy:
+          requires:
+            - unit-test
+            - integration-test  # Deploy only if tests pass

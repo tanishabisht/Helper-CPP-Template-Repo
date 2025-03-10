@@ -1,0 +1,56 @@
+version: 2.1  # CircleCI config version
+
+# ------------------------
+# Define Executors (Environments)
+# ------------------------
+executors:
+  cpp_executor:
+    docker:
+      - image: gcc:latest
+    working_directory: ~/cpp-template-repo
+
+# ------------------------
+# Define Jobs (Tasks)
+# ------------------------
+jobs:
+
+  # 🎯 Build Job: Install dependencies & build the project
+  build:
+    executor: cpp_executor
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: sudo apt update && sudo apt install -y cmake g++ libgtest-dev
+      - run:
+          name: Build the project
+          command: |
+            mkdir build
+            cd build
+            cmake ..
+            make
+
+  # ✅ Unit Test Job: Runs basic unit tests
+  unit-test:
+    executor: cpp_executor
+    steps:
+      - checkout
+      - run:
+          name: Run unit tests
+          command: |
+            cd build
+            ctest --output-on-failure
+      - store_test_results:
+          path: build/Testing
+
+# ------------------------
+# 🔄 Define Workflows (Control Execution Order)
+# ------------------------
+workflows:
+  version: 2
+  build-test-deploy:
+    jobs:
+      - build  
+      - unit-test:
+          requires:
+            - build
